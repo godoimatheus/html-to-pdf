@@ -1,5 +1,6 @@
 import datetime
 import os
+from tempfile import NamedTemporaryFile
 
 import pdfkit
 from jinja2 import Environment, FileSystemLoader
@@ -23,13 +24,21 @@ footer_params = {
 
 rendered_main_html = template.render(**main_params)
 
+# normal
+# template_footer = env.get_template('footer.html')
+# with open('temp_footer.html', 'w') as html_file:
+#     html = template_footer.render(**footer_params)
+#     html_file.write(html)
+
+# temp file
 template_footer = env.get_template('footer.html')
-with open('temp_footer.html', 'w') as html_file:
-    html = template_footer.render(**footer_params)
-    html_file.write(html)
+rendered_footer = template_footer.render(**footer_params)
+with NamedTemporaryFile(delete=False, suffix='.html', mode='w') as temp:
+    temp.write(rendered_footer)
+    temp_footer = temp.name
 
 options = {
-    'footer-html': 'temp_footer.html',
+    'footer-html': temp_footer,
     'encoding': 'UTF-8',
     'no-outline': None,
 }
@@ -41,4 +50,5 @@ pdfkit.from_string(
     verbose=True,
 )
 
-os.remove('temp_footer.html')
+# os.remove('temp_footer.html')
+os.remove(temp_footer)
